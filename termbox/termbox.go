@@ -25,12 +25,15 @@ type Infrastructure struct {
 	Cursor bool
 }
 
+type Item struct{}
+
 type Screen struct {
-	Categories      []Category
-	Languages       []Language
-	Infrastructures []Infrastructure
-	Row             int
-	ItemName        string
+	Categories       []Category
+	Languages        []Language
+	Infrastructures  []Infrastructure
+	RowCount         int
+	CurrentRowNumber int
+	ItemName         string
 }
 
 func main() {
@@ -70,13 +73,14 @@ func main() {
 		}
 	}
 
-	screen.Row = len(screen.Categories)
-	screen.ItemName = "Category"
-	termbox.Flush()
+	screen.RowCount = len(screen.Categories)
+	screen.ItemName = "Categories"
+	screen.CurrentRowNumber = -1
 
 	width, _ := termbox.Size()
 	cell := termbox.CellBuffer()
-	row := -1
+
+	termbox.Flush()
 
 loop:
 	for {
@@ -89,68 +93,144 @@ loop:
 
 			// Down
 			if ev.Key == 65516 {
-				if row >= screen.Row-1 {
+				if screen.CurrentRowNumber >= screen.RowCount-1 {
 					break
 				}
-				row++
+				screen.CurrentRowNumber++
 				for i := 0; i < width; i++ {
-					if row > 0 {
-						termbox.SetCell(i, row-1, cell[(row-1)*width+i].Ch, termbox.ColorWhite, termbox.ColorBlack)
+					if screen.CurrentRowNumber > 0 {
+						termbox.SetCell(i, screen.CurrentRowNumber-1, cell[(screen.CurrentRowNumber-1)*width+i].Ch, termbox.ColorWhite, termbox.ColorBlack)
 					}
-					termbox.SetCell(i, row, cell[row*width+i].Ch, termbox.ColorWhite, termbox.ColorWhite)
+					termbox.SetCell(i, screen.CurrentRowNumber, cell[screen.CurrentRowNumber*width+i].Ch, termbox.ColorWhite, termbox.ColorWhite)
+				}
+
+				switch screen.ItemName {
+				case "Categories":
+					for i := range screen.Categories {
+						screen.Categories[i].Cursor = false
+					}
+					screen.Categories[screen.CurrentRowNumber].Cursor = true
+				case "Languages":
+					for i := range screen.Languages {
+						screen.Languages[i].Cursor = false
+					}
+					screen.Languages[screen.CurrentRowNumber].Cursor = true
+				case "Infrastructures":
+					for i := range screen.Infrastructures {
+						screen.Infrastructures[i].Cursor = false
+					}
+					screen.Infrastructures[screen.CurrentRowNumber].Cursor = true
 				}
 			}
 
 			// Up
 			if ev.Key == 65517 {
-				if 0 >= row {
+				if 0 >= screen.CurrentRowNumber {
 					break
 				}
-				row--
+				screen.CurrentRowNumber--
 				for i := 0; i < width; i++ {
-					termbox.SetCell(i, row, cell[row*width+i].Ch, termbox.ColorWhite, termbox.ColorWhite)
-					termbox.SetCell(i, row+1, cell[(row+1)*width+i].Ch, termbox.ColorWhite, termbox.ColorBlack)
+					termbox.SetCell(i, screen.CurrentRowNumber, cell[screen.CurrentRowNumber*width+i].Ch, termbox.ColorWhite, termbox.ColorWhite)
+					termbox.SetCell(i, screen.CurrentRowNumber+1, cell[(screen.CurrentRowNumber+1)*width+i].Ch, termbox.ColorWhite, termbox.ColorBlack)
+				}
+
+				switch screen.ItemName {
+				case "Categories":
+					for i := range screen.Categories {
+						screen.Categories[i].Cursor = false
+					}
+					screen.Categories[screen.CurrentRowNumber].Cursor = true
+				case "Languages":
+					for i := range screen.Languages {
+						screen.Languages[i].Cursor = false
+					}
+					screen.Languages[screen.CurrentRowNumber].Cursor = true
+				case "Infrastructures":
+					for i := range screen.Infrastructures {
+						screen.Infrastructures[i].Cursor = false
+					}
+					screen.Infrastructures[screen.CurrentRowNumber].Cursor = true
 				}
 			}
 
 			// Right
-			if ev.Key == 65514 && row >= 0 {
+			if ev.Key == 65514 {
+				if 0 > screen.CurrentRowNumber {
+					break
+				}
+
 				switch screen.ItemName {
-				case "Category":
+				case "Categories":
+					screen.Categories[screen.CurrentRowNumber].Cursor = true
+
 					runes := []rune{}
 					for i := 0; i < width; i++ {
-						runes = append(runes, cell[row*width+i].Ch)
+						runes = append(runes, cell[screen.CurrentRowNumber*width+i].Ch)
 					}
+
 					switch strings.TrimSpace(string(runes)) {
 					case "Languages":
+						termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+						cursor := false
 						for i, language := range screen.Languages {
 							for ii, r := range language.Name {
 								termbox.SetCell(ii, i, r, termbox.ColorWhite, termbox.ColorBlack)
 							}
-							for iii := len(language.Name); iii < width; iii++ {
-								termbox.SetCell(iii, i, 32, termbox.ColorWhite, termbox.ColorBlack)
+							if language.Cursor {
+								cursor = true
+								screen.CurrentRowNumber = i
+								for iii := 0; iii < width; iii++ {
+									termbox.SetCell(iii, i, cell[i*width+iii].Ch, termbox.ColorWhite, termbox.ColorWhite)
+								}
 							}
 						}
-						screen.Row = len(screen.Languages)
-						row = -1
+						if !cursor {
+							screen.CurrentRowNumber = -1
+						}
+						screen.ItemName = "Languages"
+						screen.RowCount = len(screen.Languages)
 					case "Infrastructures":
+						termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+						cursor := false
 						for i, infrastructure := range screen.Infrastructures {
 							for ii, r := range infrastructure.Name {
 								termbox.SetCell(ii, i, r, termbox.ColorWhite, termbox.ColorBlack)
 							}
-							for iii := len(infrastructure.Name); iii < width; iii++ {
-								termbox.SetCell(iii, i, 32, termbox.ColorWhite, termbox.ColorBlack)
+							if infrastructure.Cursor {
+								cursor = true
+								screen.CurrentRowNumber = i
+								for iii := 0; iii < width; iii++ {
+									termbox.SetCell(iii, i, cell[i*width+iii].Ch, termbox.ColorWhite, termbox.ColorWhite)
+								}
 							}
 						}
-						screen.Row = len(screen.Languages)
-						row = -1
+						if !cursor {
+							screen.CurrentRowNumber = -1
+						}
+						screen.ItemName = "Infrastructures"
+						screen.RowCount = len(screen.Infrastructures)
 					}
 				}
 			}
 
 			// Left
 			if ev.Key == 65515 {
-
+				if screen.ItemName == "Languages" || screen.ItemName == "Infrastructures" {
+					termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+					for i, category := range screen.Categories {
+						for ii, r := range category.Name {
+							termbox.SetCell(ii, i, r, termbox.ColorWhite, termbox.ColorBlack)
+						}
+						if category.Cursor {
+							screen.CurrentRowNumber = i
+							for iii := 0; iii < width; iii++ {
+								termbox.SetCell(iii, i, cell[i*width+iii].Ch, termbox.ColorWhite, termbox.ColorWhite)
+							}
+						}
+					}
+					screen.ItemName = "Categories"
+					screen.RowCount = len(screen.Categories)
+				}
 			}
 
 			termbox.Flush()
