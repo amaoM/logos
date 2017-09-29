@@ -2,23 +2,27 @@ package main
 
 import (
 	"log"
+	"strings"
 
 	termbox "github.com/nsf/termbox-go"
 )
 
 type Category struct {
-	ID   int
-	Name string
+	ID     int
+	Name   string
+	Cursor bool
 }
 
 type Language struct {
-	ID   int
-	Name string
+	ID     int
+	Name   string
+	Cursor bool
 }
 
 type Infrastructure struct {
-	ID   int
-	Name string
+	ID     int
+	Name   string
+	Cursor bool
 }
 
 type Screen struct {
@@ -26,6 +30,7 @@ type Screen struct {
 	Languages       []Language
 	Infrastructures []Infrastructure
 	Row             int
+	ItemName        string
 }
 
 func main() {
@@ -38,23 +43,23 @@ func main() {
 	screen := new(Screen)
 
 	screen.Categories = []Category{
-		{1, "Language"},
-		{2, "Tool"},
+		{1, "Languages", false},
+		{2, "Infrastructures", false},
 	}
 
 	screen.Languages = []Language{
-		{1, "java"},
-		{2, "go"},
-		{3, "ruby"},
-		{4, "python"},
-		{5, "php"},
+		{1, "java", false},
+		{2, "go", false},
+		{3, "ruby", false},
+		{4, "python", false},
+		{5, "php", false},
 	}
 
 	screen.Infrastructures = []Infrastructure{
-		{1, "chef"},
-		{2, "ansible"},
-		{3, "docker"},
-		{4, "terraform"},
+		{1, "chef", false},
+		{2, "ansible", false},
+		{3, "docker", false},
+		{4, "terraform", false},
 	}
 
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
@@ -66,6 +71,7 @@ func main() {
 	}
 
 	screen.Row = len(screen.Categories)
+	screen.ItemName = "Category"
 	termbox.Flush()
 
 	width, _ := termbox.Size()
@@ -108,8 +114,38 @@ loop:
 			}
 
 			// Right
-			if ev.Key == 65514 {
-
+			if ev.Key == 65514 && row >= 0 {
+				switch screen.ItemName {
+				case "Category":
+					runes := []rune{}
+					for i := 0; i < width; i++ {
+						runes = append(runes, cell[row*width+i].Ch)
+					}
+					switch strings.TrimSpace(string(runes)) {
+					case "Languages":
+						for i, language := range screen.Languages {
+							for ii, r := range language.Name {
+								termbox.SetCell(ii, i, r, termbox.ColorWhite, termbox.ColorBlack)
+							}
+							for iii := len(language.Name); iii < width; iii++ {
+								termbox.SetCell(iii, i, 32, termbox.ColorWhite, termbox.ColorBlack)
+							}
+						}
+						screen.Row = len(screen.Languages)
+						row = -1
+					case "Infrastructures":
+						for i, infrastructure := range screen.Infrastructures {
+							for ii, r := range infrastructure.Name {
+								termbox.SetCell(ii, i, r, termbox.ColorWhite, termbox.ColorBlack)
+							}
+							for iii := len(infrastructure.Name); iii < width; iii++ {
+								termbox.SetCell(iii, i, 32, termbox.ColorWhite, termbox.ColorBlack)
+							}
+						}
+						screen.Row = len(screen.Languages)
+						row = -1
+					}
+				}
 			}
 
 			// Left
