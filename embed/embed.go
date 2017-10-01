@@ -1,79 +1,56 @@
 package embed
 
-import "fmt"
+import "log"
 
-// Human ...
-type Human struct {
-	Type string
+type logos1Main struct {
+	Name string
 }
 
-// Man ...
-type Man struct {
-	*Human
+type logos1Sub struct {
+	logos1Main
 }
 
-// Woman ...
-type Woman struct {
-	*Human
+func logos1() string {
+	s := new(logos1Sub)
+	s.Name = "logos1Main"
+	return s.Name
 }
 
-// Talk ...
-func (human *Human) Talk() bool {
-	fmt.Println("I am a " + human.Type)
-	return true
+type logos2Interface interface {
+	Logos2Func(name string) string
 }
 
-func logos1() bool {
-	man := Man{&Human{Type: "man"}}
-	return man.Talk()
+// Hiding the logos2Interface
+type logos2interface logos2Interface
+
+// The logos2Main struct is a logos2Interface type
+// because it implementate the logos2Func
+type logos2Main struct{}
+
+func (l2m *logos2Main) Logos2Func(name string) string {
+	return name
 }
 
-type Animal interface {
-	Eat()
+// Embed of logos2interface
+type logos2InterfaceMain struct {
+	logos2interface
 }
 
-type Dog struct {
+//
+func newLogos2Main() *logos2InterfaceMain {
+	return &logos2InterfaceMain{&logos2Main{}}
 }
 
-type Cat struct {
+func logos2() string {
+	l2im := newLogos2Main()
+	return l2im.Logos2Func("logos2InterfaceMain")
 }
 
-func (d *Dog) Eat() bool {
-	fmt.Println("I eating dog foods.")
-	return true
-}
-
-func (c *Cat) Eat() bool {
-	fmt.Println("I eating cat foods.")
-	return true
-}
-
-func (h *Human) Eat() bool {
-	fmt.Println("I eating tenpura")
-	return true
-}
-
-func (m *Man) Ean() bool {
-	fmt.Println("I eating steaks")
-	return true
-}
-
-func (wm *Woman) Eat() bool {
-	fmt.Println("I eating cakes")
-	return true
-}
-
-func logos2() bool {
-	dog := new(Dog)
-	cat := new(Cat)
-	human := new(Human)
-	man := new(Man)
-	woman := new(Woman)
-	dog.Eat()
-	cat.Eat()
-	human.Eat()
-	man.Eat()
-	woman.Eat()
-
-	return true
+func logos3() string {
+	var f interface{} = newLogos2Main()
+	l2i, ok := f.(logos2interface)
+	if !ok {
+		log.Fatal("Error")
+	}
+	return l2i.Logos2Func("logos2InterfaceMain")
 }
