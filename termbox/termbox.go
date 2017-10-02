@@ -157,10 +157,8 @@ loop:
 
 				screen.changeCursor()
 
-			}
-
-			// Up
-			if ev.Key == termbox.KeyArrowUp {
+				// Up
+			} else if ev.Key == termbox.KeyArrowUp {
 				if 1 >= screen.CurrentRowNumber {
 					break
 				}
@@ -171,10 +169,9 @@ loop:
 				}
 
 				screen.changeCursor()
-			}
 
-			// Right
-			if ev.Key == termbox.KeyArrowRight {
+				// Right
+			} else if ev.Key == termbox.KeyArrowRight {
 				if 1 > screen.CurrentRowNumber {
 					break
 				}
@@ -196,14 +193,19 @@ loop:
 						screen.ItemName = Infrastructures
 					}
 				}
-			}
 
-			// Left
-			if ev.Key == termbox.KeyArrowLeft {
+				// Left
+			} else if ev.Key == termbox.KeyArrowLeft {
 				if screen.ItemName == Languages || screen.ItemName == Infrastructures {
 					screen.moveScreenToTheLeft(categories, width, cell)
 					screen.ItemName = Categories
 				}
+
+			} else {
+				for i, r := range "QUERY>" {
+					termbox.SetCell(i, 0, r, termbox.ColorWhite, termbox.ColorBlack)
+				}
+				termbox.SetCell(7, 0, ev.Ch, termbox.ColorDefault, termbox.ColorDefault)
 			}
 
 			termbox.Flush()
