@@ -20,7 +20,7 @@ func TestLogos2(t *testing.T) {
 
 func TestLogos3(t *testing.T) {
 	expected := "logos2InterfaceMain"
-	actual := logos2()
+	actual := logos3()
 	if expected != actual {
 		t.Errorf("expected: %s, actual: %s", expected, actual)
 	}
