@@ -29,6 +29,7 @@ type Screen struct {
 	RowCount         int
 	CurrentRowNumber int
 	ItemName         string
+	QueryPosition    int
 }
 
 func (screen *Screen) moveScreenToTheRight(items []Item, width int, cell []termbox.Cell) {
@@ -117,6 +118,7 @@ func main() {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 
 	createQueryRow()
+	screen.QueryPosition = 6
 	for i, category := range categories {
 		for ii, r := range category.Name {
 			termbox.SetCell(ii, i+1, r, termbox.ColorWhite, termbox.ColorBlack)
@@ -201,11 +203,17 @@ loop:
 					screen.ItemName = Categories
 				}
 
-			} else {
-				for i, r := range "QUERY>" {
-					termbox.SetCell(i, 0, r, termbox.ColorWhite, termbox.ColorBlack)
+			} else if ev.Key == termbox.KeyBackspace2 {
+				if screen.QueryPosition > 6 {
+					termbox.SetCell(screen.QueryPosition, 0, 32, termbox.ColorWhite, termbox.ColorWhite)
+					termbox.SetCell(screen.QueryPosition+1, 0, 32, termbox.ColorWhite, termbox.ColorBlack)
+					screen.QueryPosition--
 				}
-				termbox.SetCell(7, 0, ev.Ch, termbox.ColorDefault, termbox.ColorDefault)
+
+			} else {
+				screen.QueryPosition++
+				termbox.SetCell(screen.QueryPosition, 0, ev.Ch, termbox.ColorDefault, termbox.ColorDefault)
+				termbox.SetCell(screen.QueryPosition+1, 0, 32, termbox.ColorWhite, termbox.ColorWhite)
 			}
 
 			termbox.Flush()
